@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Payment Successful{% endblock %}
+
+{% block content %}
+    <section class="checkout-success-page">
+        <h2>Payment Successful!</h2>
+        <p>Your order has been placed successfully. Thank you for your purchase!</p>
+        <p>Total amount paid: Rs {{ total_price|floatformat:2 }}</p>
+        <a href="{% url 'product_list' %}" class="button">Continue Shopping</a>
+    </section>
+{% endblock %}

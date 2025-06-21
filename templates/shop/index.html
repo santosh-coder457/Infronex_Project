@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}The Digital Shelf{% endblock %}
+
+{% block content %}
+    <section class="products-section">
+        <h2>Our Products</h2>
+        <div class="product-grid">
+            {% if products %}
+                {% for product in products %}
+                    <div class="product-card">
+                        {% if product.image_url %}
+                            <img src="{{ product.image_url }}" alt="{{ product.name }}">
+                        {% elif product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                        {% else %}
+                            <img src="{% static 'images/placeholder.png' %}" alt="No Image">
+                        {% endif %}
+                        <h3><a href="#">{{ product.name }}</a></h3>
+                        <p>Rs {{ product.price|floatformat:2 }}</p>
+                        <button class="add-to-cart-btn" data-product-id="{{ product.id }}">Add to Cart</button>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No products available yet.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <aside class="cart-summary">
+        <h2>Your Cart</h2>
+        <p>Total: Rs <span id="cart-total">{{ request_cart_total|floatformat:2 }}</span></p>
+        <div class="cart-actions">
+            <a href="{% url 'view_cart' %}" class="button">View Full Cart</a>
+            <a href="{% url 'checkout' %}" class="button">Checkout</a>
+        </div>
+    </aside>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/script.js' %}"></script>
+{% endblock %}

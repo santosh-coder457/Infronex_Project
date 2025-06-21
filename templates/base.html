@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}The Digital Shelf{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header>
+        <nav>
+            <h1><a href="{% url 'product_list' %}">The Digital Shelf</a></h1>
+            <ul>
+                <li><a href="{% url 'product_list' %}">Shop</a></li>
+                {% if user.is_authenticated %}
+                    <li>Hello, {{ user.username }}!</li>
+                    <li><a href="{% url 'logout' %}">Logout</a></li>
+                {% else %}
+                    <li><a href="{% url 'login' %}">Login</a></li>
+                    <li><a href="{% url 'signup' %}">Sign Up</a></li>
+                {% endif %}
+                <li>
+                    <a href="{% url 'view_cart' %}">
+                        Cart (<span id="cart-count">{{ request_cart_count|default:0 }}</span>)
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% block content %}
+        {# Content from child templates will go here #}
+        {% endblock %}
+    </main>
+
+    <footer>
+        <p>&copy; 2025 The Digital Shelf E-commerce. All rights reserved.</p>
+    </footer>
+
+    {% block extra_js %}
+    {# Additional JavaScript for specific pages #}
+    {% endblock %}
+</body>
+</html>
