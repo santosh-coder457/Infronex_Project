@@ -21,11 +21,11 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('shop.urls')),       # Home page and shop-related URLs
-    path('accounts/', include('accounts.urls')), # Accounts URLs
+    path('', include('shop.urls')),       
+    path('accounts/', include('accounts.urls')), 
 ]
 
-# Serve static and media files only in development (DEBUG=True)
+# Serve static and media files only in development 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

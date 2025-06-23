@@ -1,17 +1,17 @@
 document.addEventListener('DOMContentLoaded', function() {
     const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
-    const removeCartButtons = document.querySelectorAll('.remove-from-cart-btn'); // New: Select remove buttons
+    const removeCartButtons = document.querySelectorAll('.remove-from-cart-btn'); 
     const cartCountSpan = document.getElementById('cart-count');
-    const cartTotalDisplay = document.getElementById('cart-total-display'); // New: For cart page total
+    const cartTotalDisplay = document.getElementById('cart-total-display'); 
 
-    // Function to get CSRF token from cookies
+    
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
             const cookies = document.cookie.split(';');
             for (let i = 0; i < cookies.length; i++) {
                 const cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
+                
                 if (cookie.substring(0, name.length + 1) === (name + '=')) {
                     cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                     break;
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return cookieValue;
     }
 
-    // Add to Cart functionality
+    
     addToCartButtons.forEach(button => {
         button.addEventListener('click', function() {
             const productId = this.dataset.productId;
@@ -45,8 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         cartCountSpan.textContent = data.cart_count;
                     }
                     alert('Product added to cart!');
-                    // Note: For product page, you might want to dynamically update 'Your Cart' section
-                    // For now, this just updates the header cart count.
+                    
                 } else {
                     alert('Error adding to cart: ' + data.message);
                 }
@@ -58,16 +57,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Remove from Cart functionality (NEW)
+    
     removeCartButtons.forEach(button => {
         button.addEventListener('click', function() {
             const productId = this.dataset.productId;
             
             if (!confirm('Are you sure you want to remove this item from your cart?')) {
-                return; // User cancelled
+                return; 
             }
 
-            fetch('/remove_from_cart/', { // Ensure this URL matches your Django URL pattern
+            fetch('/remove_from_cart/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -81,19 +80,19 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.success) {
                     if (cartCountSpan) {
-                        cartCountSpan.textContent = data.cart_count; // Update header cart count
+                        cartCountSpan.textContent = data.cart_count; 
                     }
                     if (cartTotalDisplay) {
-                        cartTotalDisplay.textContent = parseFloat(data.new_total_price).toFixed(2); // Update cart total on cart page
+                        cartTotalDisplay.textContent = parseFloat(data.new_total_price).toFixed(2); 
                     }
 
-                    // Remove the entire row from the table on the cart page
+                    
                     const rowToRemove = document.getElementById(`cart-item-${productId}`);
                     if (rowToRemove) {
                         rowToRemove.remove();
                     }
 
-                    // If cart becomes empty, show the "Your cart is empty" message
+                    
                     if (data.cart_count === 0) {
                         const cartTable = document.querySelector('.cart-table');
                         const cartSummaryBottom = document.querySelector('.cart-summary-bottom');

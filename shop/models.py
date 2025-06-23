@@ -5,15 +5,13 @@ class Product(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    # Use CharField for image URL, as you're using external URLs or static paths
     image_url = models.CharField(max_length=500, blank=True, null=True)
-    # image = models.ImageField(upload_to='products/', blank=True, null=True) # If you want to upload images
+   
 
     def __str__(self):
         return self.name
 
 class Cart(models.Model):
-    # Cart linked to a User OR a session (for anonymous users)
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     session_key = models.CharField(max_length=40, null=True, blank=True, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -34,7 +32,6 @@ class CartItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
 
     class Meta:
-        # Ensures that a product can only appear once in a given cart
         unique_together = ('cart', 'product')
 
     def __str__(self):

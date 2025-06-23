@@ -5,12 +5,11 @@ from django.http import JsonResponse
 import json
 from django.conf import settings
 import razorpay
-import datetime # For unique receipt ID
+import datetime 
 
 from .models import Product, Cart, CartItem
 
 # Initialize Razorpay client
-# Ensure settings.RAZORPAY_KEY_ID and settings.RAZORPAY_KEY_SECRET are set
 client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 client.set_app_details({"title": "Django E-commerce", "version": "1.0"})
 
@@ -19,9 +18,7 @@ def get_or_create_cart(request):
     Helper function to get or create a cart for the current user or session.
     """
     if request.user.is_authenticated:
-        # For logged-in users, get or create a cart linked to their user
         cart, created = Cart.objects.get_or_create(user=request.user)
-        # If there's an old session cart, merge it
         if request.session.session_key and not created:
             session_cart = Cart.objects.filter(session_key=request.session.session_key).exclude(user=request.user).first()
             if session_cart:
@@ -32,29 +29,23 @@ def get_or_create_cart(request):
                     else:
                         cart_item.quantity = item.quantity
                     cart_item.save()
-                session_cart.delete() # Delete the old session cart
-                request.session.pop('cart_count', None) # Clear old session cart count
+                session_cart.delete() 
+                request.session.pop('cart_count', None) 
     else:
-        # For anonymous users, use session_key
         session_key = request.session.session_key
         if not session_key:
             request.session.create()
             session_key = request.session.session_key
         cart, created = Cart.objects.get_or_create(session_key=session_key)
 
-    # Update cart_count in session for immediate display
     request.session['cart_count'] = sum(item.quantity for item in cart.items.all())
     return cart
 
 def checkout_success(request):
-    # You might want to retrieve order details from session or a success token here
-    # For simplicity, just render the success page for now.
-    # In a real app, you'd verify if the user actually just completed a payment.
-    return render(request, 'shop/checkout_success.html', {}) # Pass context if needed
+    return render(request, 'shop/checkout_success.html', {}) 
 
 def product_list(request):
     products = Product.objects.all()
-    # Ensure cart count is updated on page load for the template
     get_or_create_cart(request)
     return render(request, 'shop/index.html', {'products': products})
 
@@ -75,7 +66,6 @@ def add_to_cart(request):
                 cart_item.quantity = quantity
             cart_item.save()
 
-            # Update session cart count
             request.session['cart_count'] = sum(item.quantity for item in cart.items.all())
 
             return JsonResponse({'success': True, 'cart_count': request.session['cart_count']})
@@ -102,12 +92,11 @@ def remove_from_cart(request):
 
             try:
                 cart_item = CartItem.objects.get(cart=cart, product=product)
-                cart_item.delete() # Delete the cart item
+                cart_item.delete() 
                 messages.success(request, f"{product.name} removed from your cart.")
             except CartItem.DoesNotExist:
                 messages.error(request, "Product not found in your cart.")
 
-            # Recalculate and update cart count in session
             request.session['cart_count'] = sum(item.quantity for item in cart.items.all())
             
             # Recalculate total price for immediate update on the cart page
@@ -118,17 +107,15 @@ def remove_from_cart(request):
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'message': 'Invalid JSON.'}, status=400)
         except Exception as e:
-            # Log the error for debugging
+            
             print(f"Error removing from cart: {e}")
             return JsonResponse({'success': False, 'message': str(e)}, status=500)
     return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=400)
 
-# Add this placeholder function if you chose to keep `checkout_success` in urls.py
-# If you removed it (Option 1 from previous response), you don't need this.
 def checkout_success(request):
     return render(request, 'shop/checkout_success.html', {})
 
-@login_required # Only logged-in users can checkout
+@login_required 
 def checkout(request):
     cart = get_or_create_cart(request)
     cart_items = cart.items.all()
@@ -144,48 +131,37 @@ def checkout(request):
         razorpay_signature = request.POST.get('razorpay_signature')
 
         try:
-            # Verify payment signature
+            
             client.utility.verify_payment_signature({
                 'razorpay_order_id': razorpay_order_id,
                 'razorpay_payment_id': payment_id,
                 'razorpay_signature': razorpay_signature
             })
-
-            # Payment is verified and successful!
-            # In a real application, you would:
-            # 1. Create an Order object in your database
-            # 2. Add CartItems as OrderItems
-            # 3. Mark the order as paid
-            # 4. Clear the user's cart
             
-            cart_items.delete() # Clears items from cart
-            request.session['cart_count'] = 0 # Reset cart count in session
+            cart_items.delete() 
+            request.session['cart_count'] = 0 
             messages.success(request, "Your order has been placed successfully!")
-            # return render(request, 'shop/checkout_success.html', {'total_price': total_price})
-            return redirect('checkout_success') # Redirect to the named URL
+            return redirect('checkout_success') 
 
         except Exception as e:
             messages.error(request, f"Payment verification failed: {e}. Please try again.")
-            # Redirect back to checkout or an error page
             return redirect('checkout')
 
-    # For GET request (initial load of checkout page)
-    amount_in_paisa = int(total_price * 100)  # Razorpay amounts are in paisa
-    # Generate a unique receipt ID
+    amount_in_paisa = int(total_price * 100)  
     order_receipt = f"receipt_cart_{cart.id}_{request.user.id}_{int(datetime.datetime.now().timestamp())}"
 
     try:
         # Create Razorpay order
         razorpay_order = client.order.create({
             'amount': amount_in_paisa,
-            'currency': 'INR',  # Or your desired currency
+            'currency': 'INR', 
             'receipt': order_receipt,
-            'payment_capture': '1'  # Auto-capture payment upon successful transaction
+            'payment_capture': '1'  
         })
         razorpay_order_id = razorpay_order['id']
     except Exception as e:
         messages.error(request, f"Error creating Razorpay order: {e}. Please try again.")
-        return redirect('view_cart') # Go back to cart if order creation fails
+        return redirect('view_cart') 
 
     context = {
         'cart_items': cart_items,
@@ -195,6 +171,6 @@ def checkout(request):
         'razorpay_amount': amount_in_paisa,
         'customer_name': request.user.username if request.user.is_authenticated else 'Guest',
         'customer_email': request.user.email if request.user.is_authenticated else '',
-        'customer_phone': '9999999999', # Replace with actual phone from user profile or form
+        'customer_phone': '9999999999', 
     }
     return render(request, 'shop/checkout.html', context)

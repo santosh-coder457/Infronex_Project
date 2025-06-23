@@ -1,4 +1,3 @@
-# shop/context_processors.py
 from .models import Cart
 
 def cart_context(request):
@@ -24,10 +23,10 @@ def cart_context(request):
     if cart:
         cart_count = sum(item.quantity for item in cart.items.all())
         cart_total = cart.total_price
-        cart_items_list = cart.items.all() # To display items in context if needed globally
+        cart_items_list = cart.items.all()
 
     return {
         'cart_count': cart_count,
-        'request_cart_items': cart_items_list, # Using a different name to avoid conflict with 'cart_items' in specific views
+        'request_cart_items': cart_items_list,
         'request_cart_total': cart_total,
     }

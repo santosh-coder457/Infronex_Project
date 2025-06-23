@@ -40,7 +40,7 @@
             "handler": function (response){
                 var form = document.createElement('form');
                 form.method = 'POST';
-                form.action = "{% url 'checkout' %}"; // Action to your Django checkout view for post-payment verification
+                form.action = "{% url 'checkout' %}"; 
 
                 var csrfInput = document.createElement('input');
                 csrfInput.type = 'hidden';

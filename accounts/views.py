@@ -10,13 +10,13 @@ def signup_view(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            # After successful signup, check for an anonymous cart and link it
+           
             session_key = request.session.session_key
             if session_key:
                 try:
                     anon_cart = Cart.objects.get(session_key=session_key, user__isnull=True)
                     anon_cart.user = user
-                    anon_cart.session_key = None # Clear session key once linked
+                    anon_cart.session_key = None 
                     anon_cart.save()
                     messages.success(request, f"Welcome, {user.username}! Your cart has been loaded.")
                 except Cart.DoesNotExist:
@@ -24,8 +24,8 @@ def signup_view(request):
             else:
                 messages.success(request, f"Welcome, {user.username}! You can now start shopping.")
 
-            login(request, user) # Log the user in after signup
-            return redirect('product_list') # Redirect to product list or home
+            login(request, user) 
+            return redirect('product_list') 
     else:
         form = SignUpForm()
     return render(request, 'accounts/signup.html', {'form': form})
@@ -39,15 +39,15 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                # After login, check for an anonymous cart and link it
+                
                 session_key = request.session.session_key
                 if session_key:
                     try:
                         anon_cart = Cart.objects.get(session_key=session_key, user__isnull=True)
                         user_cart, created_user_cart = Cart.objects.get_or_create(user=user)
 
-                        # Merge items from anonymous cart to user's cart
-                        if not created_user_cart: # If user already had a cart
+                        
+                        if not created_user_cart: 
                             for item in anon_cart.items.all():
                                 user_cart_item, created_item = CartItem.objects.get_or_create(cart=user_cart, product=item.product)
                                 if not created_item:
@@ -55,9 +55,9 @@ def login_view(request):
                                 else:
                                     user_cart_item.quantity = item.quantity
                                 user_cart_item.save()
-                            anon_cart.delete() # Delete the anonymous cart after merging
+                            anon_cart.delete() 
 
-                        else: # If user did not have a cart, simply assign the anonymous cart
+                        else: 
                             anon_cart.user = user
                             anon_cart.session_key = None
                             anon_cart.save()

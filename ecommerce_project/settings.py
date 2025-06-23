@@ -135,6 +135,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = '/' 
 LOGOUT_REDIRECT_URL = '/'
 
-# Razorpay Settings (Replace with your ACTUAL TEST keys)
+# Razorpay Settings 
 RAZORPAY_KEY_ID = 'rzp_test_jE2CFgFeIQISYH'
 RAZORPAY_KEY_SECRET = 'kLLvWLelQz757qEtog9ItvLx'
