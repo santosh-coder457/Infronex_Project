@@ -29,7 +29,10 @@
 ![Image Alt](https://github.com/santosh-coder457/Infronex_Project/blob/00f96bdc38652656d4ecc2c1fe8ff36b730d00e9/otp-screenshot.png)
 
 #### Razorpay-Payment-Successful ScreenShot :
-![Image Alt](https://github.com/santosh-coder457/Infronex_Project/blob/00f96bdc38652656d4ecc2c1fe8ff36b730d00e9/payment-successfull.png)
+![Image Alt](https://github.com/santosh-coder457/Infronex_Project/blob/642ef8c7003f20c757b2222880f28be203b9259d/Address_and_pay%20.png)
+
+#### Live_PaymentSuccessful_Screenshot :
+![Image Alt](https://github.com/santosh-coder457/Infronex_Project/blob/0ba40b19aaad3cb6633d54de22459691eb9c1fae/live_pay_success.png)
 
 
 
