@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Payment Failed{% endblock %}
+
+{% block content %}
+    <div class="checkout-success-page"> {# Reusing some success page styles #}
+        <h2 style="color: #dc3545;">Payment Failed!</h2>
+        <p>Unfortunately, your payment could not be processed.</p>
+        {% if message %}<p>{{ message }}</p>{% endif %}
+        {% if payment %}
+            <p>Transaction ID: <strong>{{ payment.transaction_id|default:"N/A" }}</strong></p>
+        {% endif %}
+        <p>Please review your payment details and try again, or contact support.</p>
+        <a href="{% url 'view_cart' %}" class="button secondary">Return to Cart</a>
+        <a href="{% url 'product_list' %}" class="button">Continue Shopping</a>
+    </div>
+{% endblock %}

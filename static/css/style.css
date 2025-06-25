@@ -69,12 +69,13 @@ main {
 
 .product-grid {
     display: flex; 
-    flex-direction: row; 
-    overflow-x: auto; 
-    gap: 20px;
+    flex-wrap: wrap; /* NEW: Allows items to wrap to the next line */
+    /* Removed overflow-x: auto; as we now want wrapping, not horizontal scrolling */
+    gap: 20px; /* Keep your existing gap */
     margin-top: 20px;
     padding-bottom: 10px; 
     align-items: flex-start; 
+    justify-content: flex-start; /* Ensures items start from the left */
 }
 
 .product-card {
@@ -84,7 +85,9 @@ main {
     text-align: center;
     background-color: #fff;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    flex: 0 0 250px;
+    /* CHANGE THIS LINE for 4 products per row */
+    flex: 0 0 calc(25% - 15px); /* This calculation is for 4 items per row with 20px gap */
+    box-sizing: border-box; /* Keep this */
 }
 .product-card img {
     max-width: 100%;
@@ -382,5 +385,5 @@ footer {
     padding: 3px;
     background-color: #333;
     color: white;
-    
+    /* There's an issue on this line, or just before the closing brace below */
 }

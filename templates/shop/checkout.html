@@ -1,92 +1,168 @@
+
+
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}Checkout{% endblock %}
 
 {% block content %}
-    <section class="checkout-page-content">
-        <h2>Checkout</h2>
-        {% if cart_items %}
-            <h3>Order Summary</h3>
-            <ul class="checkout-items">
-                {% for item in cart_items %}
-                    <li>
-                        <span>{{ item.product.name }} x {{ item.quantity }}</span>
-                        <span>Rs {{ item.total_price|floatformat:2 }}</span>
-                    </li>
-                {% endfor %}
-            </ul>
-            <p class="checkout-total"><strong>Total: Rs {{ total_price|floatformat:2 }}</strong></p>
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">Checkout</h2>
 
-            <div class="checkout-form">
-                <p>Click "Pay Now" to complete your purchase.</p>
-                <button id="rzp-button1" class="button place-order-btn">Pay Now</button>
+    {# Display Django Messages (success, error, info) #}
+    {% if messages %}
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <ul class="list-unstyled">
+                    {% for message in messages %}
+                        <li class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
+                            {{ message }}
+                        </li>
+                    {% endfor %}
+                </ul>
             </div>
-        {% else %}
-            <p>Your cart is empty. Please add items to checkout. <a href="{% url 'product_list' %}">Go to Shop</a></p>
-        {% endif %}
-    </section>
+        </div>
+    {% endif %}
+
+    <div class="row">
+        {# Cart Summary Section #}
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white rounded-top">
+                    <h4 class="mb-0">Your Cart Items</h4>
+                </div>
+                <div class="card-body">
+                    {% if cart_items %}
+                        <ul class="list-group list-group-flush">
+                            {% for item in cart_items %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>{{ item.product.name }} <small>(x{{ item.quantity }})</small></span>
+                                    <span class="fw-bold">Rs {{ item.total_price|floatformat:2 }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        <h5 class="mt-4 text-end"><strong>Total: Rs {{ total_price|floatformat:2 }}</strong></h5>
+                    {% else %}
+                        <p class="text-center py-4">Your cart is empty. <a href="{% url 'product_list' %}" class="btn btn-sm btn-outline-primary mt-2">Go to Shop</a></p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# Address and Payment Section #}
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white rounded-top">
+                    <h4 class="mb-0">Shipping Address</h4>
+                </div>
+                <div class="card-body">
+                    {# Address Form #}
+                    <form method="post" class="mb-4 p-3 border rounded bg-light">
+                        {% csrf_token %}
+                        {% for field in address_form %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label fw-bold">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <div class="form-text text-muted">{{ field.help_text }}</div>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill mt-3">Save Address & Continue</button>
+                    </form>
+
+                    {# Display Saved Address & Payment Options #}
+                    {% if user_address %}
+                        <div class="mt-4 p-3 border rounded bg-success-subtle text-success border-success-subtle">
+                            <h5>Your Saved Address:</h5>
+                            <p class="mb-1"><strong>{{ user_address.full_name }}</strong></p>
+                            <p class="mb-1">{{ user_address.address_line1 }}</p>
+                            {% if user_address.address_line2 %}
+                                <p class="mb-1">{{ user_address.address_line2 }}</p>
+                            {% endif %}
+                            <p class="mb-1">{{ user_address.city }}, {{ user_address.state }} - {{ user_address.postal_code }}</p>
+                            <p class="mb-1">{{ user_address.country }}</p>
+                            <p class="mb-0">Phone: {{ user_address.phone_number }}</p>
+                        </div>
+
+                        <div class="mt-4 text-center">
+                            <h4>Proceed to Payment</h4>
+                            {% if razorpay_order_id %}
+                                <p class="text-muted">Click "Pay Now" to complete your purchase.</p>
+                                <button id="rzp-button1" class="btn btn-success btn-lg w-75 rounded-pill shadow">
+                                    <i class="fas fa-money-bill-wave me-2"></i> Pay Now
+                                </button>
+                                {# Optional: Add a subtle loading indicator or message #}
+                                <div id="payment-loading" class="mt-2 text-info d-none">
+                                    <div class="spinner-border spinner-border-sm" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div> Initiating payment...
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning mt-3" role="alert">
+                                    Could not create payment order. Please check your cart or try again later.
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info mt-3 text-center" role="alert">
+                            Please fill out the shipping address form above to proceed.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
+{# Razorpay script and initialization, only loaded if an order ID is available #}
+{% if user_address and razorpay_order_id %}
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
+
+        document.getElementById('rzp-button1').onclick = function(e){
+            document.getElementById('payment-loading').classList.remove('d-none');
+            rzp1.open();
+            e.preventDefault();
+        }
+
         var options = {
-            "key": "{{ razorpay_key_id }}",
-            "amount": "{{ razorpay_amount }}",
+            "key": "{{ razorpay_key_id }}", 
+            "amount": "{{ razorpay_amount }}", 
             "currency": "INR",
-            "name": "My Simple Shop",
-            "description": "Purchase from My Simple Shop",
-            "order_id": "{{ razorpay_order_id }}",
-            "handler": function (response){
-                var form = document.createElement('form');
-                form.method = 'POST';
-                form.action = "{% url 'checkout' %}"; 
-
-                var csrfInput = document.createElement('input');
-                csrfInput.type = 'hidden';
-                csrfInput.name = 'csrfmiddlewaretoken';
-                csrfInput.value = '{{ csrf_token }}';
-                form.appendChild(csrfInput);
-
-                var paymentIdInput = document.createElement('input');
-                paymentIdInput.type = 'hidden';
-                paymentIdInput.name = 'razorpay_payment_id';
-                paymentIdInput.value = response.razorpay_payment_id;
-                form.appendChild(paymentIdInput);
-
-                var orderIdInput = document.createElement('input');
-                orderIdInput.type = 'hidden';
-                orderIdInput.name = 'razorpay_order_id';
-                orderIdInput.value = response.razorpay_order_id;
-                form.appendChild(orderIdInput);
-
-                var signatureInput = document.createElement('input');
-                signatureInput.type = 'hidden';
-                signatureInput.name = 'razorpay_signature';
-                signatureInput.value = response.razorpay_signature;
-                form.appendChild(signatureInput);
-
-                document.body.appendChild(form);
-                form.submit();
-            },
+            "name": "The Digital Shelf",
+            "description": "Purchase from The Digital Shelf",
+            "image": "https://placehold.co/128x128/007bff/ffffff?text=Logo",
+            "order_id": "{{ razorpay_order_id }}", 
+            "callback_url": "{% url 'checkout' %}",
             "prefill": {
                 "name": "{{ customer_name }}",
                 "email": "{{ customer_email }}",
                 "contact": "{{ customer_phone }}"
             },
             "notes": {
-                "address": "Django Demo Shop Address"
+                "address": "Digital Shelf Shopping Order"
             },
             "theme": {
-                "color": "#007bff"
+                "color": "#3399CC" 
             }
         };
 
         var rzp1 = new Razorpay(options);
 
-        document.getElementById('rzp-button1').onclick = function(e){
-            rzp1.open();
-            e.preventDefault();
-        }
+        rzp1.on('payment.failed', function(response){
+            document.getElementById('payment-loading').classList.add('d-none');
+        });
+        rzp1.on('modal.closed', function(){
+            document.getElementById('payment-loading').classList.add('d-none');
+        });
+
     </script>
+{% endif %}
+{# Link to Font Awesome for icons (if using) #}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 {% endblock %}
