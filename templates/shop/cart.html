@@ -36,8 +36,8 @@
                 <a href="{% url 'product_list' %}" class="button secondary">Continue Shopping</a>
             </div>
         {% else %}
-            <p>Your cart is empty. Start shopping!</p>
-            <a href="{% url 'product_list' %}"></a>
+            <p>Your cart is empty.<a href="{% url 'product_list' %}"> Start shopping!</a></p>
+            
         {% endif %}
     </section>
 {% endblock %}
